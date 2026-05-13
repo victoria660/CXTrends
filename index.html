@@ -1873,18 +1873,6 @@
     <div id="vocReasonXlsxStatus" style="font-size:0.78rem;color:var(--text-muted);min-width:120px;text-align:right"></div>
   </div>
 
-  <!-- Publish export strip -->
-  <div class="voc-upload-strip" style="margin-top:12px;border:1px dashed var(--greige);background:transparent">
-    <div class="voc-upload-left">
-      <div class="voc-upload-title">Export for publishing</div>
-      <div class="voc-upload-sub">Downloads a self-contained index.html with all your uploaded data baked in — replace your local file with it, then push to GitHub to update the live site</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="btn" onclick="exportForPublishing()" style="cursor:pointer">Download index.html</button>
-      <div id="exportStatus" style="font-size:0.78rem;color:var(--text-muted);min-width:120px;text-align:right"></div>
-    </div>
-  </div>
-
 </div>
 
 <!-- ── One-off VoC Tab Panel ─────────────────────────────────────────────── -->
@@ -1968,7 +1956,7 @@ let charts      = {};
 const LS_KEY_VOC             = 'gsheets_voc_data';
 const LS_KEY_VOC_ONEOFF      = 'gsheets_voc_oneoff_data_v1';
 const LS_KEY_VOLUME          = 'gsheets_volume_data_v14';
-const LS_KEY_VOC_REASON_XLSX = 'gsheets_voc_reason_xlsx_v8';
+const LS_KEY_VOC_REASON_XLSX = 'gsheets_voc_reason_xlsx_v7';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function pct(v) {
@@ -5188,237 +5176,187 @@ const REASON_TAXONOMY = (() => {
   // Each entry: [L1, L2, L3 (canonical name), ...aliases]
   // Aliases cover old names, punctuation variants, typos seen in Excel exports
   const t = [
-    // ── Quality Concern Report (R+D) ─────────────────────────────────────────
-    ['R+D Quality Concern Report','Food Quality','Mislabeled',
-      'mislabeled product','mislabeled food'],
-    ['R+D Quality Concern Report','Food Quality','Smell',
-      'smell issue','smell concern','smell feedback'],
-    ['R+D Quality Concern Report','Food Quality','Color',
-      'color issue','colour issue','color concern'],
-    ['R+D Quality Concern Report','Food Quality','Texture',
-      'texture issue','texture concern'],
+    // ── R+D Quality Concern Report ──────────────────────────────────────────
+    ['R+D Quality Concern Report','Food Quality','Smell Issue',
+      'smell','smell issue'],
+    ['R+D Quality Concern Report','Food Quality','Color Issue',
+      'color','colour issue'],
+    ['R+D Quality Concern Report','Food Quality','Texture Issue',
+      'texture'],
     ['R+D Quality Concern Report','Food Quality','Shelf-Life Issue',
-      'shelf-life issues','shelf life issue','shelf-life issue (going bad early)',
-      'going bad early','expiring early'],
+      'shelf-life issues','shelf-life issue (going bad early)','shelf life issue'],
     ['R+D Quality Concern Report','Food Quality','Underweight/Overweight Pkgs',
-      'underweight/overweight packages','underweight packages','overweight packages'],
+      'underweight/overweight packages'],
+    ['R+D Quality Concern Report','Food Quality','Cat Won\'t Eat'],
+    ['R+D Quality Concern Report','Food Quality','Mislabeled'],
     ['R+D Quality Concern Report','Foreign Object','Organic Material',
-      'foreign object - organic','in food - fresh','in food - dry','in treats','in box',
-      'bone','cartilage','plant material'],
-    ['R+D Quality Concern Report','Foreign Object','Inorganic Material',
-      'foreign object - inorganic','debris','packaging material','plastic'],
+      'in food - fresh','in food - dry','in treats','in box'],
+    ['R+D Quality Concern Report','Foreign Object','Inorganic Material'],
     ['R+D Quality Concern Report','Reaction/Illness','Vomiting Only',
-      'vomiting only','vomiting - only'],
+      'vomiting only'],
     ['R+D Quality Concern Report','Reaction/Illness','Vomiting with other symptoms',
-      'vomiting with other symptoms','vomiting - with other symptoms'],
+      'vomiting with other symptoms'],
     ['R+D Quality Concern Report','Reaction/Illness','Diarrhea Only',
-      'diarrhea only','diarrhea - only'],
+      'diarrhea only'],
     ['R+D Quality Concern Report','Reaction/Illness','Constipation only',
-      'constipation only','constipation'],
+      'constipation'],
     ['R+D Quality Concern Report','Reaction/Illness','Urinary Tract Issues',
-      'urinary tract issues','urinary issues'],
+      'urinary tract issues'],
     ['R+D Quality Concern Report','Reaction/Illness','Other Reactions or Illness',
-      'other reactions or illness','other reaction','other illness',
-      'escalation - vet consulted','esalation - vet consulted',
-      'escalation - no vet consulted','deemed non issue','deemed non-issue'],
+      'other reactions or illness','esalation - vet consulted',
+      'escalation - vet consulted','escalation - no vet consulted',
+      'deemed non issue','deemed non-issue'],
     ['R+D Quality Concern Report','Reaction/Illness','Allergies',
-      'allergy','allergies (skin itching, gi issues, etc.)','allergic reaction',
-      'skin itching','gi allergy'],
+      'allergies (skin itching, gi issues, etc.)','allergy'],
     ['R+D Quality Concern Report','Food Packaging Quality','Sealing issues / leakage',
-      'sealing issues/leakage','sealing issue','leakage'],
-    ['R+D Quality Concern Report','Food Packaging Quality','Hard to open',
-      'hard to open','difficult to open'],
-    ['R+D Quality Concern Report','Food Packaging Quality','Mislabeled Product',
-      'mislabeled packaging'],
-    ['R+D Quality Concern Report','Food Packaging Quality','Damage or scratches',
-      'packaging damage','scratches'],
+      'sealing issues/leakage','sealing issues/leakage'],
+    ['R+D Quality Concern Report','Food Packaging Quality','Mislabeled Product'],
+    ['R+D Quality Concern Report','Food Packaging Quality','Hard to open'],
+    ['R+D Quality Concern Report','Food Packaging Quality','Damage or scratches'],
     // ── Operations + Fulfillment ─────────────────────────────────────────────
-    ['Operations + Fulfillment','Shipment Issue','Fully Thawed',
-      'fully thawed','arrived thawed','room temperature','warm order'],
-    ['Operations + Fulfillment','Shipment Issue','Partially Thawed',
-      'partially thawed','cold to touch'],
-    ['Operations + Fulfillment','Shipment Issue','Mispick - Short',
-      'mispick, short','mispick short','mispick: short','missing items - mispick'],
-    ['Operations + Fulfillment','Shipment Issue','Mispick - Incorrect',
-      'mispick, incorrect','mispick incorrect','mispick: incorrect','wrong items - mispick'],
-    ['Operations + Fulfillment','Shipment Issue','Duplicate Order',
-      'duplicate order'],
+    ['Operations + Fulfillment','Shipment Issue','Fully Thawed'],
+    ['Operations + Fulfillment','Shipment Issue','Partially Thawed'],
+    ['Operations + Fulfillment','Shipment Issue','Mispick, Short',
+      'mispick - short','mispick short','mispick: short'],
+    ['Operations + Fulfillment','Shipment Issue','Mispick, Incorrect',
+      'mispick - incorrect','mispick incorrect','mispick: incorrect'],
+    ['Operations + Fulfillment','Shipment Issue','Duplicate Order'],
     ['Operations + Fulfillment','Shipment Issue','Pending, No Scan',
-      'pending: no scan','pending no scan','carrier issue - pending','no scan'],
+      'pending no scan','carrier issue - pending','pending: no scan'],
     ['Operations + Fulfillment','Carrier Issue','Missing, Marked Delivered',
-      'missing: marked delivered','missing marked delivered',
-      'carrier issue - missing but delivered','marked delivered not received'],
+      'carrier issue - missing but delivered','missing marked delivered',
+      'missing: marked delivered'],
     ['Operations + Fulfillment','Carrier Issue','Delayed',
-      'carrier issue - delayed','delayed shipment','order delayed'],
-    ['Operations + Fulfillment','Carrier Issue','No Movement',
-      'no movement','no tracking movement'],
+      'carrier issue - delayed'],
+    ['Operations + Fulfillment','Carrier Issue','No Movement'],
     ['Operations + Fulfillment','Carrier Issue','Undeliverable',
-      'carrier issue - undeliverable','unable to deliver','failed delivery'],
+      'carrier issue - undeliverable'],
     ['Operations + Fulfillment','Carrier Issue','Driver Complaint',
-      'carrier issue - driver complaint','delivery driver complaint'],
-    ['Operations + Fulfillment','Carrier Issue','Inconvenient Delivery Location',
-      'inconvenient delivery location','delivery location complaint'],
+      'carrier issue - driver complaint'],
+    ['Operations + Fulfillment','Carrier Issue','Inconvenient Delivery Location'],
     ['Operations + Fulfillment','Packaging Issue','Damaged Box',
-      'damage - shipping box','damaged shipping box','box damaged'],
+      'damage - shipping box'],
     ['Operations + Fulfillment','Packaging Issue','Damaged Food Packaging',
-      'damage - food packaging','food packaging damaged','torn packet'],
+      'damage - food packaging'],
     ['Operations + Fulfillment','Packaging Issue','Damaged Non-food Item',
-      'damage - non-food item','damage - non-food','non-food item damaged'],
-    ['Operations + Fulfillment','Packaging Issue','Packaging Complaint',
-      'packaging complaint','packaging feedback'],
+      'damage - non-food item','damage - non-food'],
+    ['Operations + Fulfillment','Packaging Issue','Packaging Complaint'],
     ['Operations + Fulfillment','Packaging Issue','Dry Ice Burn Injury',
-      'dry ice burn','burn/numbness','dry ice/coolant - burn/numbness','dry ice injury'],
+      'burn/numbness','dry ice burn','dry ice/coolant - burn/numbness'],
     ['Operations + Fulfillment','Packaging Issue','Loose Dry Ice',
-      'loose dry ice','dry ice/coolant - no bag','no bag'],
+      'no bag','dry ice/coolant - no bag','loose dry ice'],
     ['Operations + Fulfillment','Packaging Issue','No Coolant',
-      'no coolant','dry ice/coolant - bag, no ice','bag, no ice','no dry ice'],
-    // ── Account → Order Management (ops-style, user-classified as ops) ────────
-    ['Account','Order Management','Update after processing',
-      'update after processing','order update after processing'],
-    ['Account','Order Management','Rush next order',
-      'rush next order','rush order'],
-    ['Account','Order Management','Delay next order',
-      'delay next order','delay order','postpone order'],
-    ['Account','Order Management','OOS / Out of stock',
-      'out of stock','oos','inquiry - inventory','out of stock item'],
-    ['Account','Order Management','Incorrect Address',
-      'incorrect address','wrong address','address error'],
-    ['Account','Order Management','Cancellation, Before Fulfillment',
-      'cancellation, before fulfilled','cancellation: before fulfilled',
-      'cancellation: before fulfillment','cancellation before fulfillment',
-      'cancellation before fulfilled','cancellation, before processing',
-      'cancellation: before processing','cancellation before processing',
-      'cancel before fulfillment','cancel before fulfilled'],
-    ['Account','Order Management','Cancellation, After Fulfillment',
-      'cancellation, after fulfilled','cancellation: after fulfilled',
-      'cancellation: after fulfillment','cancellation after fulfillment',
-      'cancellation after fulfilled','cancellation, after processing',
-      'cancellation: after processing','cancellation after processing',
-      'cancel after fulfillment','cancel after fulfilled'],
-    ['Account','Order Management','WISMO',
-      'wismo','where is my order','tracking','order status'],
-    ['Account','Order Management','Money back guarantee',
-      'money back guarantee','mbg','refund request - money back guarantee'],
-    ['Account','Order Management','Failed Charge',
-      'failed charge','failed payment','payment failed'],
-    // ── Account → Account Management ──────────────────────────────────────────
-    ['Account','Account Management','Reactivation',
-      'reactivation','reactivate subscription'],
-    ['Account','Account Management','Edit Items',
-      'edit subscription items','edit items','add/remove/edit subscription items',
-      'update subscription items','change subscription items'],
+      'bag, no ice','dry ice/coolant - bag, no ice','no coolant'],
+    ['Operations + Fulfillment','Order Inquiry','Update after processing'],
+    ['Operations + Fulfillment','Order Inquiry','Delay next order'],
+    ['Operations + Fulfillment','Order Inquiry','Rush next order'],
+    ['Operations + Fulfillment','Order Inquiry','OOS / Out of stock',
+      'out of stock','oos','inquiry - inventory'],
+    ['Operations + Fulfillment','Order Inquiry','Cancellation, Before Fulfilled',
+      'cancellation, before processing','cancellation before processing',
+      'cancellation before fulfilled','cancellation: before fulfilled',
+      'cancellation: before processing'],
+    ['Operations + Fulfillment','Order Inquiry','Cancellation, After Fulfilled',
+      'cancellation, after processing','cancellation after processing',
+      'cancellation after fulfilled','cancellation: after fulfilled',
+      'cancellation: after processing','cancellation'],
+    ['Operations + Fulfillment','Order Inquiry','WISMO',
+      'tracking','wismo'],
+    ['Operations + Fulfillment','Order Inquiry','Money back guarantee',
+      'refund request - money back guarantee','money back guarantee'],
+    ['Operations + Fulfillment','Order Inquiry','Incorrect Address'],
+    ['Operations + Fulfillment','Order Inquiry','Failed Charge'],
+    // ── Account ──────────────────────────────────────────────────────────────
+    ['Account','Account Management','Reactivation'],
+    ['Account','Account Management','Edit Subscription Items',
+      'edit items','add/remove/edit subscription items','edit subscription items'],
     ['Account','Account Management','Edit Customer Information',
-      'edit customer information','customer information','update account info',
-      'update email','update address','update billing'],
-    ['Account','Account Management','Account Cancellation',
-      'account cancellation','cancel subscription','cancel account',
-      'subscription cancellation'],
-    ['Account','Account Management','Upcoming Order Cost',
-      'upcoming order cost','next order cost','order cost inquiry'],
+      'customer information'],
+    ['Account','Account Management','Account Cancellation'],
+    ['Account','Account Management','Upcoming Order Cost'],
     ['Account','Account Management','Password/Log-in',
-      'password/login','password / log-in','login issue','magic link',
-      'can\'t log in','account access'],
-    ['Account','Account Management','Discount/Promo Code',
-      'apply discount code','discount code','promo code','discount/promo code',
-      'coupon code','promotional code'],
-    // ── Account → Referral Program ────────────────────────────────────────────
+      'password/login','password / log-in'],
+    ['Account','Account Management','Apply Discount Code',
+      'discount/promo code','discount code','apply discount code'],
+    ['Account','Order Management','Update after processing'],
+    ['Account','Order Management','Rush next order'],
+    ['Account','Order Management','Delay next order'],
+    ['Account','Order Management','Out of stock'],
+    ['Account','Order Management','Failed Charge'],
+    ['Account','Order Management','Incorrect Address'],
+    ['Account','Order Management','Cancellation, Before Fulfilled'],
+    ['Account','Order Management','Cancellation, After Fulfilled'],
+    ['Account','Order Management','WISMO'],
+    ['Account','Order Management','Money back guarantee'],
     ['Account','Referral Program','Referral FAQ',
-      'referral faq','how referrals work','referral inquiry'],
-    ['Account','Referral Program','Advocate Confusion',
-      'advocate confusion','referral advocate confusion'],
-    ['Account','Referral Program','Friend Confusion',
-      'friend confusion','referral friend confusion'],
+      'referral faq','how referrals work'],
+    ['Account','Referral Program','Advocate Confusion'],
+    ['Account','Referral Program','Friend Confusion'],
     // ── Website ──────────────────────────────────────────────────────────────
     ['Website','Website Bug','Reactivation Bug',
-      'reactivation bug','reativation bug'],
-    ['Website','Website Bug','Quiz/Checkout Bug',
-      'quiz bug','checkout bug','quiz/checkout bug'],
-    ['Website','Website Bug','Account/Order Management Bug',
-      'account/order management bug','account order management bug','portal bug'],
-    ['Website','Website Bug','Cancellation Bug',
-      'cancellation bug'],
-    ['Website','Website Confusion/Feedback','Confusing UX/UI',
-      'confusing ux/ui','ux confusion','ui confusion','website confusion'],
-    ['Website','Website Confusion/Feedback','General Website Feedback',
-      'general website feedback','website feedback'],
+      'reativation bug'],
+    ['Website','Website Bug','Quiz/Checkout Bug'],
+    ['Website','Website Bug','Account/Order Management Bug'],
+    ['Website','Website Bug','Cancellation Bug'],
+    ['Website','Website Confusion/Feedback','Confusing UX/UI'],
+    ['Website','Website Confusion/Feedback','General Website Feedback'],
     // ── Marketing/Brand ──────────────────────────────────────────────────────
     ['Marketing/Brand','Comms Issues','Missing Comms Email/SMS',
-      'missing comms email/sms','missing email','missing sms','missing notification'],
-    ['Marketing/Brand','Comms Issues','Broken Link in Comms',
-      'broken link in comms','comms bug','broken link','broken email link'],
+      'missing comms email/sms'],
+    ['Marketing/Brand','Comms Issues','Comms Bug',
+      'broken link in comms'],
+    ['Marketing/Brand','Marketing Feedback','Partner Concern'],
     ['Marketing/Brand','Marketing Feedback','Partnership Request',
-      'partnership request','influencer request','partner request'],
-    ['Marketing/Brand','Marketing Feedback','Partner Concern',
-      'partner concern','investor concern','recipe change concern'],
-    ['Marketing/Brand','Marketing Feedback','Campaign Feedback',
-      'campaign feedback','brand / promotional campaign feedback',
-      'brand campaign','promotional campaign feedback','marketing campaign feedback'],
-    ['Marketing/Brand','Marketing Feedback','Site Copy',
-      'site copy','website copy','copy feedback'],
-    ['Marketing/Brand','Comms Feedback','Pop-Up Comms Feedback',
-      'pop-up comms feedback','popup feedback'],
-    ['Marketing/Brand','Comms Feedback','Delivery Comms Feedback',
-      'delivery comms feedback','delivery email feedback'],
-    ['Marketing/Brand','Comms Feedback','Transactional Comms Feedback',
-      'transactional comms feedback','transactional email feedback','heads up comms'],
+      'partnership request'],
+    ['Marketing/Brand','Marketing Feedback','Brand / Promotional Campaign Feedback',
+      'brand campaign','campaign feedback'],
+    ['Marketing/Brand','Marketing Feedback','Site Copy'],
+    ['Marketing/Brand','Comms Feedback','Pop-Up Comms Feedback'],
+    ['Marketing/Brand','Comms Feedback','Delivery Comms Feedback'],
+    ['Marketing/Brand','Comms Feedback','Transactional Comms Feedback'],
     ['Marketing/Brand','Comms Feedback','Marketing Comms Feedback',
-      'marketing comms feedback','abandon cart comms feedback',
-      'promotional comms feedback','marketing email feedback'],
+      'abandon cart comms feedback'],
     // ── Smalls FAQs ──────────────────────────────────────────────────────────
     ['Smalls FAQs','Food + Prep FAQs','Ingredients + Nutrition',
-      'ingredients + nutrition','ingredients + process','ingredients','nutrition',
-      'inquiry - ingredients','inquiry - nutrition','ingredient question',
-      'nutritional information'],
+      'ingredients + process','ingredients','nutrition',
+      'inquiry - ingredients','inquiry - nutrition'],
     ['Smalls FAQs','Food + Prep FAQs','Support Diet',
-      'support diet','inquiry - support diet','special diet','kidney diet',
-      'urinary diet','weight management'],
-    ['Smalls FAQs','Food + Prep FAQs','Products Offered/ Recommendations',
-      'products offered/recommendations','products offered/ recommendations',
-      'products offers/recommendations','product recommendation'],
-    ['Smalls FAQs','Food + Prep FAQs','Transition Support / Serving Guidance',
-      'transition support/serving guidance','transition support',
-      'transition support / serving guidance',
-      'serving guidance','feeding + serving instructions','inquiry - transition',
-      'warming tips','serving tips'],
-    ['Smalls FAQs','Food + Prep FAQs','Cat Stopped Eating',
-      'cat stopped eating','won\'t eat','cat won\'t eat','cat not eating'],
+      'inquiry - support diet'],
+    ['Smalls FAQs','Food + Prep FAQs','Products Offered/Recommendations',
+      'products offered/ recommendations','products offers/recommendations'],
+    ['Smalls FAQs','Food + Prep FAQs','Transition Support/Serving Guidance',
+      'transition support','transition support/serving guidance',
+      'feeding + serving instructions','inquiry - transition'],
+    ['Smalls FAQs','Food + Prep FAQs','Cat Stopped Eating'],
     ['Smalls FAQs','Food + Prep FAQs','Storage Instructions',
-      'storage instructions','inquiry - storage','how to store','shelf life faq'],
-    ['Smalls FAQs','Non-food FAQs','Cat Non-food Items',
-      'cat non-food items','smallserve','smallsware','slooowserve'],
-    ['Smalls FAQs','Non-food FAQs','Human Apparel/Items',
-      'human apparel/items','human apparel','merch','t-shirt','blanket','magazine'],
+      'inquiry - storage'],
+    ['Smalls FAQs','Non-food FAQs','Cat Non-food Items'],
+    ['Smalls FAQs','Non-food FAQs','Human Apparel/Items'],
     ['Smalls FAQs','Purchasing Smalls Food FAQs','Pricing Questions/Confusion',
-      'pricing questions/confusion','inquiry - pricing','price question',
-      'too expensive','recurring charge confusion','cost confusion'],
+      'pricing questions/confusion','inquiry - pricing',
+      'too expensive','recurring charge confusion'],
     ['Smalls FAQs','Purchasing Smalls Food FAQs','Subscription Questions',
-      'subscription questions','inquiry - subscription','subscription faq'],
+      'inquiry - subscription'],
     ['Smalls FAQs','Purchasing Smalls Food FAQs','Retail Inquiry',
-      'retail inquiry','purchasing retail','retail location'],
+      'purchasing retail'],
     ['Smalls FAQs','Purchasing Smalls Food FAQs','Sampler Questions',
-      'sampler questions','inquiry - sampler','sampler faq'],
-    ['Smalls FAQs','Purchasing Smalls Food FAQs','One-time Order Request',
-      'one-time order request','one time order','one-time order','one time order request'],
-    ['Smalls FAQs','Shipping + Delivery FAQs','Where do you deliver?',
-      'where do you deliver','delivery area','delivery locations faq'],
+      'inquiry - sampler'],
+    ['Smalls FAQs','Purchasing Smalls Food FAQs','One-time Order',
+      'one-time order request','one time order','one-time order request'],
+    ['Smalls FAQs','Shipping + Delivery FAQs','Where do you deliver?'],
     ['Smalls FAQs','Shipping + Delivery FAQs','Packaging / Insulation Inquiry',
-      'packaging / insulation inquiry','packaging/insulation inquiry',
-      'insulation question','packaging disposal'],
-    ['Smalls FAQs','Shipping + Delivery FAQs','Carrier Question',
-      'carrier question','carrier faq','which carrier'],
+      'packaging/insulation inquiry','packaging / insulation inquiry'],
+    ['Smalls FAQs','Shipping + Delivery FAQs','Carrier Question'],
     // ── CS Admin ─────────────────────────────────────────────────────────────
     ['CS Admin','Feedback','Positive Feedback',
       'positive feedback'],
-    ['CS Admin','No Response Needed','Missed Call',
-      'missed call'],
-    ['CS Admin','No Response Needed','Spam',
-      'spam'],
+    ['CS Admin','No Response Needed','Missed Call'],
+    ['CS Admin','No Response Needed','Spam'],
     ['CS Admin','No Response Needed','Multitix',
-      'multitix','multi-tix','multiple tickets'],
-    ['CS Admin','Temporary','Does not fit',
-      'does not fit','no matching reason'],
+      'multi-tix','multitix'],
+    ['CS Admin','Temporary','Does not fit'],
     ['CS Admin','Temporary','More Info Needed',
-      'more info needed','more information needed','waiting for customer'],
+      'more info needed','more information needed'],
   ];
 
   const norm = s => (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
@@ -6207,8 +6145,36 @@ function renderVocTab() {
       }
     });
 
-    const buildReasonSummary = () => {
-      return `<em style="color:var(--text-muted)">No additional detail available for this reason this week.</em>`;
+    // Shared helper: build summary text for a reason row
+    const isAnalysisSentence = s =>
+      !/[0-9a-f]{8}-[0-9a-f]{4}/i.test(s) &&
+      !/^>/.test(s.trim()) &&
+      !/^-\s*customer\s*-/i.test(s.trim()) &&
+      !/"[^"]{10,}"/.test(s) &&
+      !/^["'']/.test(s.trim()) &&
+      !/i don['']t|my cat|my order|my package|my subscription|i was|i have|i need|i want|i am|i've|i'm/i.test(s);
+    let rawSentences = null;
+    if (entry.raw && entry.raw.length > 10) {
+      rawSentences = entry.raw
+        .replace(/#+[^\n]*/g, '')
+        .replace(/\|[^\n]+\|/g, '')
+        .replace(/^[-*•]\s+/gm, '')
+        .replace(/^>.*$/gm, '')
+        .split(/(?<=[.!?])\s+/)
+        .map(s => s.replace(/\*\*/g, '').replace(/\n+/g, ' ').trim())
+        .filter(s => s.length > 30 && s.length < 400 && isAnalysisSentence(s));
+    }
+    const buildReasonSummary = (r) => {
+      const keyWords = r.name.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+      const matchesReason = str => keyWords.some(w => str.toLowerCase().includes(w));
+      if (rawSentences) {
+        const matched = rawSentences.filter(s => matchesReason(s));
+        if (matched.length) return `<p style="margin:0;line-height:1.65">${matched.slice(0, 5).map(s => escapeHtml(s)).join(' ')}</p>`;
+      }
+      const relatedTakeaways = (entry.takeaways || []).filter(t => matchesReason(t));
+      return relatedTakeaways.length
+        ? `<p style="margin:0;line-height:1.65">${relatedTakeaways.slice(0, 3).map(s => escapeHtml(s)).join(' ')}</p>`
+        : `<em style="color:var(--text-muted)">No additional detail available for this reason this week.</em>`;
     };
 
     // Build contact reason breakdown — use Excel data (L1→L2→L3) if available, else markdown
@@ -6418,10 +6384,10 @@ function renderVocTab() {
     // High-level summary block removed per user request
     const summaryHtml = '';
 
-    // Body: markdown narrative (quotes, takeaways) — separate from reasons
+    // Body: markdown narrative (sentiment, quotes, takeaways) — separate from reasons
     const markdownBodyHtml = entry.raw
       ? renderOneoffMarkdown(entry.raw)
-      : (quotesHtml + takeawaysHtml);
+      : (sentimentHtml + quotesHtml + takeawaysHtml);
 
     // Fallback: derive total from Excel L1 sum if markdown didn't supply it
     const xlEntry = (typeof VOC_REASON_XLSX !== 'undefined') ? VOC_REASON_XLSX[week] : null;
@@ -6441,7 +6407,7 @@ function renderVocTab() {
         <span class="voc-oneoff-card-chevron">▼</span>
       </div>
       <div class="voc-oneoff-card-body" id="${cardId}" style="display:none">
-        ${summaryHtml}${reasonsHtml}${sentimentHtml}${markdownBodyHtml}
+        ${summaryHtml}${reasonsHtml}${markdownBodyHtml}
       </div>
     </div>`;
   }).join('');
@@ -6502,47 +6468,6 @@ function deleteVoCWeek(event, week) {
   renderVocTab();
 }
 
-function exportForPublishing() {
-  const statusEl = document.getElementById('exportStatus');
-  statusEl.textContent = 'Preparing…';
-
-  // Collect all current in-memory data
-  const snapshot = {
-    VOC_DATA:        VOC_DATA,
-    VOC_ONEOFF:      VOC_ONEOFF,
-    VOC_REASON_XLSX: VOC_REASON_XLSX,
-    DATA:            DATA,
-    SCORECARD:       SCORECARD,
-    VOLUME_DATA:     VOLUME_DATA,
-    GOALS:           GOALS,
-  };
-
-  // Read the current HTML source via fetch (works for local file://), inject snapshot
-  fetch(location.href)
-    .then(r => r.text())
-    .then(html => {
-      // Build the injection script — replaces pre-seed block on load
-      const injection = `\n<!-- ── Baked-in data snapshot (auto-generated by Export) ── -->\n<script>\n(function(){\n  var snap = ${JSON.stringify(snapshot)};\n  if(snap.DATA        && snap.DATA.length)        { try { DATA        = snap.DATA;        localStorage.setItem(LS_KEY_DATA,      JSON.stringify(DATA));        } catch(e){} }\n  if(snap.SCORECARD   && snap.SCORECARD.length)   { try { SCORECARD   = snap.SCORECARD;   localStorage.setItem(LS_KEY_SCORECARD, JSON.stringify(SCORECARD));   } catch(e){} }\n  if(snap.VOLUME_DATA && snap.VOLUME_DATA.length) { try { VOLUME_DATA = snap.VOLUME_DATA; localStorage.setItem(LS_KEY_VOLUME,    JSON.stringify(VOLUME_DATA));    } catch(e){} }\n  if(snap.VOC_DATA    && Object.keys(snap.VOC_DATA).length)        { try { VOC_DATA        = snap.VOC_DATA;        localStorage.setItem(LS_KEY_VOC,               JSON.stringify(VOC_DATA));        } catch(e){} }\n  if(snap.VOC_ONEOFF  && snap.VOC_ONEOFF.length)  { try { VOC_ONEOFF  = snap.VOC_ONEOFF;  localStorage.setItem(LS_KEY_VOC_ONEOFF,        JSON.stringify(VOC_ONEOFF));  } catch(e){} }\n  if(snap.VOC_REASON_XLSX && Object.keys(snap.VOC_REASON_XLSX).length) { try { VOC_REASON_XLSX = snap.VOC_REASON_XLSX; localStorage.setItem(LS_KEY_VOC_REASON_XLSX, JSON.stringify(VOC_REASON_XLSX)); } catch(e){} }\n  if(snap.GOALS && Object.keys(snap.GOALS||{}).length) { try { GOALS = snap.GOALS; } catch(e){} }\n})();\n<\/script>\n`;
-
-      // Insert just before </body>
-      const out = html.replace(/<\/body>/i, injection + '</body>');
-
-      // Trigger download
-      const blob = new Blob([out], { type: 'text/html' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'index.html';
-      a.click();
-      URL.revokeObjectURL(a.href);
-      statusEl.textContent = 'Downloaded ✓';
-      setTimeout(() => statusEl.textContent = '', 4000);
-    })
-    .catch(() => {
-      // fetch(location.href) may fail for file:// — fall back to serialising just the data
-      statusEl.textContent = 'Open via a local server to use this feature, or push manually.';
-    });
-}
-
 function toggleDeptCard(cardId, headerEl) {
   const body = document.getElementById(cardId);
   const isOpen = body.classList.contains('open');
@@ -6580,49 +6505,41 @@ function buildVoCTrends(allVoC, weeks) {
     !/^#+/.test(t.trim()) && !/^\*\*[^*]+\*\*:/.test(t.trim()) &&
     !METADATA_RE.test(t.trim());
 
-  // ── 1. Top contact drivers — avg % of weekly volume across filtered weeks ────
+  // ── 1. Top contact drivers (Excel L2, aggregated across all weeks) ─────────
   const xlWeeks = weeks.filter(w => xlsxFor(w)?.l2?.length);
   if (xlWeeks.length) {
-    // Accumulate per-week % share (not raw counts) and average across weeks
-    const l2Shares = {};
+    const l2Totals = {};
     xlWeeks.forEach(w => {
-      const xl = xlsxFor(w);
-      const weekTotal = (xl.l1 || []).reduce((s, r) => s + (r.volume || 0), 0);
-      xl.l2.forEach(r2 => {
-        if (EXCLUDED_L1.has(r2.parent)) return;
-        const share = weekTotal > 0 ? (r2.volume || 0) / weekTotal * 100 : parseFloat(r2.pct) || 0;
-        if (!l2Shares[r2.name]) l2Shares[r2.name] = { shares: [], l1: r2.parent };
-        l2Shares[r2.name].shares.push(share);
+      xlsxFor(w).l2.forEach(r2 => {
+        if (EXCLUDED_L1.has(r2.parent)) return;  // skip CS Admin + Other
+        if (!l2Totals[r2.name]) l2Totals[r2.name] = { volume: 0, l1: r2.parent };
+        l2Totals[r2.name].volume += r2.volume || 0;
       });
     });
-    const topL2 = Object.entries(l2Shares)
-      .map(([name, info]) => {
-        const avg = info.shares.reduce((s, v) => s + v, 0) / info.shares.length;
-        return [name, { avg, l1: info.l1 }];
-      })
-      .sort((a, b) => b[1].avg - a[1].avg)
+    const topL2 = Object.entries(l2Totals)
+      .sort((a, b) => b[1].volume - a[1].volume)
       .slice(0, 3);
+    const grandTotal = Object.values(l2Totals).reduce((s, v) => s + v.volume, 0);
     topL2.forEach(([name, info], i) => {
-      flags.push({ type: 'trend', text: `#${i + 1} driver: <b>${escapeHtml(name)}</b> — ${info.avg.toFixed(1)}% of volume.` });
+      const pct = grandTotal ? ((info.volume / grandTotal) * 100).toFixed(1) + '%' : '';
+      flags.push({ type: 'trend', text: `#${i + 1} driver: <b>${escapeHtml(name)}</b> — ${info.volume.toLocaleString()} contacts${pct ? ' (' + pct + ')' : ''}.` });
     });
   } else {
-    // Fallback: markdown reasons — use pct field directly
-    const reasonShares = {};
+    // Fallback: markdown reasons
+    const reasonTotals = {};
     weeks.forEach(w => {
       (allVoC[w].reasons || [])
         .filter(r => !r.isHeader && /[0-9]/.test(r.pct || ''))
         .forEach(r => {
-          const p = parseFloat((r.pct || '').replace('%', '')) || 0;
-          if (!reasonShares[r.name]) reasonShares[r.name] = [];
-          reasonShares[r.name].push(p);
+          if (!reasonTotals[r.name]) reasonTotals[r.name] = 0;
+          reasonTotals[r.name] += r.volume || 0;
         });
     });
-    Object.entries(reasonShares)
-      .map(([name, arr]) => [name, arr.reduce((s, v) => s + v, 0) / arr.length])
+    Object.entries(reasonTotals)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
-      .forEach(([name, avg], i) => {
-        flags.push({ type: 'trend', text: `#${i + 1} driver: <b>${escapeHtml(name)}</b> — ${avg.toFixed(1)}% of volume.` });
+      .forEach(([name, vol], i) => {
+        flags.push({ type: 'trend', text: `#${i + 1} driver: <b>${escapeHtml(name)}</b> — ${vol.toLocaleString()} contacts.` });
       });
   }
 
@@ -6663,7 +6580,7 @@ function buildVoCTrends(allVoC, weeks) {
         if (EXCLUDED_L1.has(c2.parent)) return;  // skip CS Admin + Other
         const p2 = prevXl.l2.find(p => p.name === c2.name);
         if (!p2) return;
-        const diff = parseFloat((c2.pct || '').replace('%','')) - parseFloat((p2.pct || '').replace('%',''));
+        const diff = parseFloat(c2.pct) - parseFloat(p2.pct);
         if (!biggest || Math.abs(diff) > Math.abs(biggest.diff)) {
           biggest = { name: c2.name, diff, currPct: c2.pct, prevPct: p2.pct };
         }
