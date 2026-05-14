@@ -7193,17 +7193,6 @@
     <div id="vocReasonXlsxStatus" style="font-size:0.78rem;color:var(--text-muted);min-width:120px;text-align:right"></div>
   </div>
 
-  <!-- Publish export strip -->
-  <div class="voc-upload-strip" style="margin-top:12px;border:1px dashed var(--greige);background:transparent">
-    <div class="voc-upload-left">
-      <div class="voc-upload-title">Export for publishing</div>
-      <div class="voc-upload-sub">Downloads a self-contained index.html with all your uploaded data baked in — replace your local file with it, then push to GitHub to update the live site</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <button class="btn" onclick="exportForPublishing()" style="cursor:pointer">Download index.html</button>
-      <div id="exportStatus" style="font-size:0.78rem;color:var(--text-muted);min-width:120px;text-align:right">Preparing…</div>
-    </div>
-  </div>
 
 </div>
 
@@ -11305,6 +11294,115 @@ function renderDeptRollup(allVoC, weeks) {
     </div>`;
 }
 
+// ── VoC trends / exec flags ────────────────────────────────────────────────────
+function buildVoCTrends(allVoC, weeks) {
+  const flags = [];
+  if (!weeks.length) return flags;
+
+  const xlsxFor = w => (typeof VOC_REASON_XLSX !== 'undefined' && VOC_REASON_XLSX[w]) || null;
+  const METADATA_RE = /^(source|date range|total conversations|channels|period|week|quarter|handled|reporting period|time period|report date|data source|platform|tool|crm)\s*::?/i;
+  const EXCLUDED_L1 = new Set(['CS Admin', 'Other']);
+  const isShortBullet = t => t && t.length > 10 && t.length <= 200 &&
+    !/^#+/.test(t.trim()) && !/^\*\*[^*]+\*\*:/.test(t.trim()) &&
+    !METADATA_RE.test(t.trim());
+
+  // 1. Top contact drivers — avg % of weekly volume
+  const xlWeeks = weeks.filter(w => xlsxFor(w)?.l2?.length);
+  if (xlWeeks.length) {
+    const l2Shares = {};
+    xlWeeks.forEach(w => {
+      const xl = xlsxFor(w);
+      const weekTotal = (xl.l1 || []).reduce((s, r) => s + (r.volume || 0), 0);
+      xl.l2.forEach(r2 => {
+        if (EXCLUDED_L1.has(r2.parent)) return;
+        const share = weekTotal > 0 ? (r2.volume || 0) / weekTotal * 100 : parseFloat(r2.pct) || 0;
+        if (!l2Shares[r2.name]) l2Shares[r2.name] = { shares: [], l1: r2.parent };
+        l2Shares[r2.name].shares.push(share);
+      });
+    });
+    const topL2 = Object.entries(l2Shares)
+      .map(([name, info]) => {
+        const avg = info.shares.reduce((s, v) => s + v, 0) / info.shares.length;
+        return [name, { avg, l1: info.l1 }];
+      })
+      .sort((a, b) => b[1].avg - a[1].avg)
+      .slice(0, 3);
+    topL2.forEach(([name, info], i) => {
+      flags.push({ type: 'trend', text: `#${i + 1} driver: <b>${escapeHtml(name)}</b> — ${info.avg.toFixed(1)}% of volume.` });
+    });
+  } else {
+    const reasonShares = {};
+    weeks.forEach(w => {
+      (allVoC[w].reasons || [])
+        .filter(r => !r.isHeader && /[0-9]/.test(r.pct || ''))
+        .forEach(r => {
+          const p = parseFloat((r.pct || '').replace('%', '')) || 0;
+          if (!reasonShares[r.name]) reasonShares[r.name] = [];
+          reasonShares[r.name].push(p);
+        });
+    });
+    Object.entries(reasonShares)
+      .map(([name, arr]) => [name, arr.reduce((s, v) => s + v, 0) / arr.length])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .forEach(([name, avg], i) => {
+        flags.push({ type: 'trend', text: `#${i + 1} driver: <b>${escapeHtml(name)}</b> — ${avg.toFixed(1)}% of volume.` });
+      });
+  }
+
+  // 2. Volume change (most recent vs prior week)
+  if (weeks.length >= 2) {
+    const currWeek = weeks[0], prevWeek = weeks[1];
+    const currTotal = parseInt((allVoC[currWeek].totalConvos || '').replace(/,/g, '')) || 0;
+    const prevTotal = parseInt((allVoC[prevWeek].totalConvos || '').replace(/,/g, '')) || 0;
+    if (currTotal && prevTotal) {
+      const diff = currTotal - prevTotal;
+      const pct = Math.abs((diff / prevTotal) * 100).toFixed(0);
+      if (Math.abs(diff) > 100) {
+        const dir = diff > 0 ? 'up' : 'down';
+        const type = diff > 0 ? 'watch' : 'stable';
+        flags.push({ type, text: `Contact volume <b>${dir} ${pct}%</b> week-over-week (${prevWeek}: ${prevTotal.toLocaleString()} → ${currWeek}: ${currTotal.toLocaleString()}).` });
+      }
+    }
+  }
+
+  // 3. Key takeaways from md files
+  const seenTakeaways = new Set();
+  weeks.forEach(w => {
+    const e = allVoC[w] || {};
+    (e.takeaways || []).filter(isShortBullet).forEach(t => {
+      const key = t.toLowerCase().replace(/\s+/g, ' ').slice(0, 70);
+      if (seenTakeaways.has(key)) return;
+      seenTakeaways.add(key);
+      flags.push({ type: 'insight', text: escapeHtml(t), week: w });
+    });
+  });
+
+  // 4. Notable L2 shift (biggest mover week-over-week)
+  if (weeks.length >= 2) {
+    const currXl = xlsxFor(weeks[0]), prevXl = xlsxFor(weeks[1]);
+    if (currXl?.l2 && prevXl?.l2) {
+      let biggest = null;
+      currXl.l2.forEach(c2 => {
+        if (EXCLUDED_L1.has(c2.parent)) return;
+        const p2 = prevXl.l2.find(p => p.name === c2.name);
+        if (!p2) return;
+        const diff = parseFloat((c2.pct || '').replace('%','')) - parseFloat((p2.pct || '').replace('%',''));
+        if (!biggest || Math.abs(diff) > Math.abs(biggest.diff)) {
+          biggest = { name: c2.name, diff, currPct: c2.pct, prevPct: p2.pct };
+        }
+      });
+      if (biggest && Math.abs(biggest.diff) >= 2) {
+        const dir = biggest.diff > 0 ? 'up' : 'down';
+        const type = biggest.diff > 0 ? 'flag' : 'watch';
+        flags.push({ type, text: `<b>${escapeHtml(biggest.name)}</b> ${dir} <b>${biggest.diff > 0 ? '+' : ''}${biggest.diff.toFixed(1)} pp</b> week-over-week (${escapeHtml(biggest.prevPct)} → ${escapeHtml(biggest.currPct)}).` });
+      }
+    }
+  }
+
+  return flags.slice(0, 5);
+}
+
 // ── VoC tab renderer ───────────────────────────────────────────────────────────
 // Build a lookup map: week string → { quarter, period } from DATA
 function buildWeekQPMap() {
@@ -11787,74 +11885,20 @@ function toggleVocCard(cardId, headerEl) {
   headerEl.classList.toggle('open', !isOpen);
 }
 
-function exportForPublishing() {
-  var statusEl = document.getElementById('exportStatus');
-
-  var input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.html';
-  input.onchange = function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    statusEl.textContent = 'Reading file...';
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        var src = ev.target.result;
-
-        // Strip any previously baked snapshot
-        src = src.replace(/<script[^>]*>[\s\S]*?\/\* BAKED-SNAPSHOT-START \*\/[\s\S]*?\/\* BAKED-SNAPSHOT-END \*\/[\s\S]*?<\/script>\s*/g, '');
-
-        // Collect current data
-        var snap = {
-          VOC_DATA:        (typeof VOC_DATA        !== 'undefined') ? VOC_DATA        : {},
-          VOC_ONEOFF:      (typeof VOC_ONEOFF      !== 'undefined') ? VOC_ONEOFF      : [],
-          VOC_REASON_XLSX: (typeof VOC_REASON_XLSX !== 'undefined') ? VOC_REASON_XLSX : {},
-          DATA:            (typeof DATA            !== 'undefined') ? DATA            : [],
-          SCORECARD:       (typeof SCORECARD       !== 'undefined') ? SCORECARD       : [],
-          VOLUME_DATA:     (typeof VOLUME_DATA     !== 'undefined') ? VOLUME_DATA     : [],
-          GOALS:           (typeof GOALS           !== 'undefined') ? GOALS           : {},
-        };
-
-        var json = JSON.stringify(snap);
-        var block = '<script>/* BAKED-SNAPSHOT-START */\n'
-          + '(function(){\n'
-          + '  var snap = ' + json + ';\n'
-          + '  if(snap.DATA&&snap.DATA.length){DATA=snap.DATA;try{localStorage.setItem(LS_KEY_DATA,JSON.stringify(DATA));}catch(e){}}\n'
-          + '  if(snap.SCORECARD&&snap.SCORECARD.length){SCORECARD=snap.SCORECARD;try{localStorage.setItem(LS_KEY_SCORECARD,JSON.stringify(SCORECARD));}catch(e){}}\n'
-          + '  if(snap.VOLUME_DATA&&snap.VOLUME_DATA.length){VOLUME_DATA=snap.VOLUME_DATA;try{localStorage.setItem(LS_KEY_VOLUME,JSON.stringify(VOLUME_DATA));}catch(e){}}\n'
-          + '  if(snap.VOC_DATA&&Object.keys(snap.VOC_DATA).length){VOC_DATA=snap.VOC_DATA;try{localStorage.setItem(LS_KEY_VOC,JSON.stringify(VOC_DATA));}catch(e){}}\n'
-          + '  if(snap.VOC_ONEOFF&&snap.VOC_ONEOFF.length){VOC_ONEOFF=snap.VOC_ONEOFF;try{localStorage.setItem(LS_KEY_VOC_ONEOFF,JSON.stringify(VOC_ONEOFF));}catch(e){}}\n'
-          + '  if(snap.VOC_REASON_XLSX&&Object.keys(snap.VOC_REASON_XLSX).length){VOC_REASON_XLSX=snap.VOC_REASON_XLSX;try{localStorage.setItem(LS_KEY_VOC_REASON_XLSX,JSON.stringify(VOC_REASON_XLSX));}catch(e){}}\n'
-          + '  if(snap.GOALS&&Object.keys(snap.GOALS).length){GOALS=snap.GOALS;}\n'
-          + '})();\n'
-          + '/* BAKED-SNAPSHOT-END */<\/script>\n';
-
-        var closeIdx = src.lastIndexOf('</body>');
-        if (closeIdx === -1) {
-          statusEl.textContent = 'Error: could not find </body> in selected file.';
-          return;
-        }
-        var output = src.slice(0, closeIdx) + block + src.slice(closeIdx);
-
-        var blob = new Blob([output], {type: 'text/html'});
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'index.html';
-        a.click();
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
-        statusEl.textContent = 'Done! File downloaded.';
-        setTimeout(function(){ statusEl.textContent = ''; }, 4000);
-      } catch(err) {
-        statusEl.textContent = 'Error: ' + err.message;
-      }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-  statusEl.textContent = 'Select your index.html...';
+function toggleDeptCard(cardId, headerEl) {
+  const body = document.getElementById(cardId);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  headerEl.classList.toggle('open', !isOpen);
 }
+
+function toggleDeptWeek(contentId, toggleEl) {
+  const content = document.getElementById(contentId);
+  const isOpen = content.classList.contains('open');
+  content.classList.toggle('open', !isOpen);
+  toggleEl.classList.toggle('open', !isOpen);
+}
+
 
 </script>
 </body>
